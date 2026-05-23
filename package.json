@@ -1,0 +1,36 @@
+{
+  "name": "cms_frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:theme": "node ./scripts/sync-sleek-theme.mjs",
+    "predev": "npm run sync:theme",
+    "prebuild": "npm run sync:theme",
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "node ./node_modules/npm-run-all2/bin/run-p/index.js type-check \"build-only {@}\" --",
+    "preview": "node ./node_modules/vite/bin/vite.js preview",
+    "build-only": "node ./node_modules/vite/bin/vite.js build",
+    "type-check": "node ./node_modules/vue-tsc/bin/vue-tsc.js --build"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.32",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4",
+    "@types/node": "^24.12.2",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "@vue/tsconfig": "^0.9.1",
+    "npm-run-all2": "^8.0.4",
+    "typescript": "~6.0.0",
+    "vite": "^8.0.8",
+    "vite-plugin-vue-devtools": "^8.1.1",
+    "vue-tsc": "^3.2.6"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
