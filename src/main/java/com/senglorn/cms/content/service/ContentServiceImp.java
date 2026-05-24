@@ -31,6 +31,33 @@ public class ContentServiceImp implements ContentService {
 
     @Override
     public CmsContent saveContent(CmsContent content) {
+        prepareForCreate(content);
+        contentRepository.insertContent(content);
+        return content;
+    }
+
+    @Override
+    public CmsContent updateContent(Integer id, CmsContent content) {
+        CmsContent current = contentRepository.selectContentById(id);
+        if (current == null) {
+            return null;
+        }
+        content.setId(id);
+        prepareForUpdate(content, current);
+        contentRepository.updateContent(content);
+        return contentRepository.selectContentById(id);
+    }
+
+    @Override
+    public boolean deleteContent(Integer id) {
+        CmsContent current = contentRepository.selectContentById(id);
+        if (current == null) {
+            return false;
+        }
+        return contentRepository.softDeleteContent(id) > 0;
+    }
+
+    private void prepareForCreate(CmsContent content) {
         if (isBlank(content.getUuid())) {
             content.setUuid(UUID.randomUUID().toString());
         }
@@ -43,9 +70,13 @@ public class ContentServiceImp implements ContentService {
         if (content.getCreateAt() == null) {
             content.setCreateAt(LocalDateTime.now());
         }
+    }
 
-        contentRepository.insertContent(content);
-        return content;
+    private void prepareForUpdate(CmsContent content, CmsContent current) {
+        content.setUuid(isBlank(content.getUuid()) ? current.getUuid() : content.getUuid());
+        content.setSlug(isBlank(content.getSlug()) ? toSlug(content.getTitle()) : content.getSlug());
+        content.setIsDeleted(content.getIsDeleted() == null ? current.getIsDeleted() : content.getIsDeleted());
+        content.setCreateAt(content.getCreateAt() == null ? current.getCreateAt() : content.getCreateAt());
     }
 
     private boolean isBlank(String value) {

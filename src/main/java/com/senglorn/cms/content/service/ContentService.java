@@ -10,4 +10,8 @@ public interface ContentService {
     CmsContent findContentById(Integer id);
 
     CmsContent saveContent(CmsContent content);
+
+    CmsContent updateContent(Integer id, CmsContent content);
+
+    boolean deleteContent(Integer id);
 }

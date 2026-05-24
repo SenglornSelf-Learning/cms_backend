@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import com.senglorn.cms.model.CmsContent;
 
@@ -66,4 +67,27 @@ public interface ContentRepository {
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insertContent(CmsContent content);
+
+    @Update("""
+            UPDATE tb_contents
+            SET uuid = #{uuid},
+                slug = #{slug},
+                keyword = #{keyword},
+                title = #{title},
+                description = #{description},
+                thumbnail = #{thumbnail},
+                editor = #{editor},
+                is_deleted = #{isDeleted},
+                create_at = #{createAt},
+                category_id = #{categoryId}
+            WHERE id = #{id}
+            """)
+    int updateContent(CmsContent content);
+
+    @Update("""
+            UPDATE tb_contents
+            SET is_deleted = true
+            WHERE id = #{id}
+            """)
+    int softDeleteContent(Integer id);
 }
