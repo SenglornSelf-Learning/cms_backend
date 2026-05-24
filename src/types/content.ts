@@ -16,3 +16,8 @@ export type CreateContentPayload = Pick<
   CmsContent,
   'title' | 'slug' | 'keyword' | 'description' | 'thumbnail' | 'editor' | 'categoryId'
 >
+
+export type UpdateContentPayload = Pick<
+  CmsContent,
+  'title' | 'slug' | 'keyword' | 'description' | 'thumbnail' | 'editor' | 'categoryId' | 'isDeleted'
+>

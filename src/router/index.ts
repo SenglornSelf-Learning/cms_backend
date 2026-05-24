@@ -30,6 +30,12 @@ const router = createRouter({
           props: true,
         },
         {
+          path: 'categories/:id/edit',
+          name: 'category-edit',
+          component: () => import('@/views/category/CategoryEditView.vue'),
+          props: true,
+        },
+        {
           path: 'contents',
           name: 'contents',
           component: () => import('@/views/content/ContentListView.vue'),
@@ -43,6 +49,12 @@ const router = createRouter({
           path: 'contents/:id',
           name: 'content-detail',
           component: () => import('@/views/content/ContentDetailView.vue'),
+          props: true,
+        },
+        {
+          path: 'contents/:id/edit',
+          name: 'content-edit',
+          component: () => import('@/views/content/ContentEditView.vue'),
           props: true,
         },
       ],

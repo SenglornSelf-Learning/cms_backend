@@ -1,24 +1,3 @@
-<script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import ContentPanel from '@/components/common/ContentPanel.vue'
-import { contentService } from '@/services'
-import type { CmsContent } from '@/types/content'
-
-const contents = ref<CmsContent[]>([])
-const error = ref<string | null>(null)
-const loading = ref(true)
-
-onMounted(async () => {
-  try {
-    contents.value = await contentService.findAll()
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to load contents'
-  } finally {
-    loading.value = false
-  }
-})
-</script>
-
 <template>
   <ContentPanel title="Content Management">
     <template #actions>
@@ -54,11 +33,65 @@ onMounted(async () => {
             <RouterLink v-if="row.id != null" class="text-success mr-2" :to="`/contents/${row.id}`">
               View
             </RouterLink>
-            <span class="text-muted">Edit</span>
-            <span class="text-muted ml-2">Delete</span>
+            <RouterLink v-if="row.id != null" class="text-primary mr-2" :to="`/contents/${row.id}/edit`">
+              Edit
+            </RouterLink>
+            <button
+              v-if="row.id != null"
+              type="button"
+              class="btn btn-link text-danger p-0"
+              :disabled="deletingId === row.id"
+              @click="deleteContent(row)"
+            >
+              {{ deletingId === row.id ? 'Deleting...' : 'Delete' }}
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
   </ContentPanel>
 </template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import ContentPanel from '@/components/common/ContentPanel.vue'
+import { contentService } from '@/services'
+import type { CmsContent } from '@/types/content'
+
+const contents = ref<CmsContent[]>([])
+const error = ref<string | null>(null)
+const loading = ref(true)
+const deletingId = ref<number | null>(null)
+
+async function loadContents() {
+  loading.value = true
+  error.value = null
+  try {
+    contents.value = await contentService.findAll()
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to load contents'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function deleteContent(row: CmsContent) {
+  if (row.id == null || !window.confirm(`Delete content "${row.title}"?`)) {
+    return
+  }
+  deletingId.value = row.id
+  error.value = null
+  try {
+    await contentService.delete(row.id)
+    await loadContents()
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Delete failed'
+  } finally {
+    deletingId.value = null
+  }
+}
+
+onMounted(() => {
+  void loadContents()
+})
+</script>

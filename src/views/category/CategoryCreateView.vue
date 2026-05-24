@@ -1,3 +1,20 @@
+<template>
+  <ContentPanel title="Create category" col-class="col-lg-8">
+    <p v-if="error" class="text-danger">{{ error }}</p>
+    <form @submit.prevent="submit">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input id="name" v-model="name" type="text" class="form-control" autocomplete="off" />
+      </div>
+      
+      <button type="submit" class="btn btn-primary" :disabled="saving">
+        {{ saving ? 'Saving…' : 'Save' }}
+      </button>
+      <RouterLink to="/categories" class="btn btn-light ml-2">Cancel</RouterLink>
+    </form>
+  </ContentPanel>
+</template>
+
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -27,19 +44,3 @@ async function submit() {
   }
 }
 </script>
-
-<template>
-  <ContentPanel title="Create category" col-class="col-lg-8">
-    <p v-if="error" class="text-danger">{{ error }}</p>
-    <form @submit.prevent="submit">
-      <div class="form-group">
-        <label for="name">Name</label>
-        <input id="name" v-model="name" type="text" class="form-control" autocomplete="off" />
-      </div>
-      <button type="submit" class="btn btn-primary" :disabled="saving">
-        {{ saving ? 'Saving…' : 'Save' }}
-      </button>
-      <RouterLink to="/categories" class="btn btn-light ml-2">Cancel</RouterLink>
-    </form>
-  </ContentPanel>
-</template>
