@@ -4,18 +4,23 @@ import java.util.List;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.ReportingPolicy;
 
-import com.cms.category.dto.CategoriesReques;
-import com.cms.category.dto.CategoriesRespone;
-import com.cms.category.entity.Category;
+import com.cms.category.model.Category;
+import com.cms.category.dto.CategoryDto.CategoryRequest;
+import com.cms.category.dto.CategoryDto.CategoryResponse;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CategoryMapper {
 
-    CategoriesRespone toResponse(Category category);
+	CategoryResponse toResponse(Category category);
 
-    List<CategoriesRespone> toResponseList(List<Category> categories);
+	List<CategoryResponse> toResponseList(List<Category> categories);
 
-    @Mapping(target = "id", ignore = true)
-    Category toEntity(CategoriesReques categoriesReques);
+	@Mapping(target = "id", ignore = true)
+	Category toEntity(CategoryRequest request);
+
+	@Mapping(target = "id", ignore = true)
+	void updateEntity(CategoryRequest request, @MappingTarget Category category);
 }

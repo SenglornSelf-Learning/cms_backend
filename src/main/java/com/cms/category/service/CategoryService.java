@@ -1,19 +1,18 @@
 package com.cms.category.service;
 
-import java.util.List;
-
-import org.springframework.lang.NonNull;
-
-import com.cms.category.entity.Category;
+import com.cms.category.dto.CategoryDto.CategoryRequest;
+import com.cms.category.dto.CategoryDto.CategoryResponse;
+import com.cms.common.response.PageResponse;
 
 public interface CategoryService {
-    List<Category> findCategories();
 
-    Category findCategoryById(@NonNull Integer id);
+	PageResponse<CategoryResponse> findAll(Integer pageIndex, Integer pageSize, String orderBy);
 
-    Category saveCategory(Category category);
+	CategoryResponse getById(Integer id);
 
-    Category updateCategory(@NonNull Integer id, Category category);
+	CategoryResponse create(CategoryRequest request, String clientIp, String clientName);
 
-    void deleteCategory(@NonNull Integer id);
+	CategoryResponse update(Integer id, CategoryRequest request, String clientIp, String clientName);
+
+	void delete(Integer id, String clientIp, String clientName);
 }

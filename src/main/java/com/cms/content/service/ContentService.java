@@ -2,16 +2,18 @@ package com.cms.content.service;
 
 import java.util.List;
 
-import com.cms.common.model.CmsContent;
+import com.cms.content.dto.ContentDto.ContentRequest;
+import com.cms.content.dto.ContentDto.ContentResponse;
 
 public interface ContentService {
-    List<CmsContent> findContents();
 
-    CmsContent findContentById(Integer id);
+	List<ContentResponse> findAll();
 
-    CmsContent saveContent(CmsContent content);
+	ContentResponse getById(Integer id);
 
-    CmsContent updateContent(Integer id, CmsContent content);
+	ContentResponse create(ContentRequest request, String clientIp, String clientName);
 
-    boolean deleteContent(Integer id);
+	ContentResponse update(Integer id, ContentRequest request, String clientIp, String clientName);
+
+	void delete(Integer id, String clientIp, String clientName);
 }
