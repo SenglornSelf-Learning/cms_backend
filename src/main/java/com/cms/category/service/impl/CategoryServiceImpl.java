@@ -24,8 +24,10 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
 
-	private static final String ACTIVE = "N";
+	private static final String NOT_DELETED = "N";
 	private static final String DELETED = "Y";
+	private static final String STATUS_ACTIVE = "N";
+	private static final String STATUS_INACTIVE = "Y";
 
 	private final CategoryRepository categoryRepository;
 	private final CategoryMapper categoryMapper;
@@ -37,7 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
 		Sort sort = buildSort(orderBy);
 
 		PageRequest pageable = PageRequest.of(setPageIndex - 1, setPageSize, sort);
-		Page<Category> page = categoryRepository.findByDeletedYn(ACTIVE, pageable);
+		Page<Category> page = categoryRepository.findByDeletedYn(NOT_DELETED, pageable);
 
 		return new PageResponse<>(
 				categoryMapper.toResponseList(page.getContent()),
@@ -49,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	public CategoryResponse getById(Integer id) {
-		return categoryMapper.toResponse(findActiveEntity(id));
+		return categoryMapper.toResponse(findNotDeletedEntity(id));
 	}
 
 	@Override
@@ -59,7 +61,8 @@ public class CategoryServiceImpl implements CategoryService {
 			throw CategoryException.badRequest("Category name is required");
 		}
 		Category entity = categoryMapper.toEntity(request);
-		entity.setDeletedYn(ACTIVE);
+		entity.setStatus(normalizeStatus(request.getStatus()));
+		entity.setDeletedYn(NOT_DELETED);
 		HttpRequestUtils.applyCreateAudit(entity, clientIp, clientName);
 		Category saved = categoryRepository.save(entity);
 		return categoryMapper.toResponse(saved);
@@ -68,8 +71,9 @@ public class CategoryServiceImpl implements CategoryService {
 	@Override
 	@Transactional
 	public CategoryResponse update(Integer id, CategoryRequest request, String clientIp, String clientName) {
-		Category category = findActiveEntity(id);
+		Category category = findNotDeletedEntity(id);
 		categoryMapper.updateEntity(request, category);
+		category.setStatus(normalizeStatus(request.getStatus()));
 		HttpRequestUtils.applyUpdateAudit(category, clientIp, clientName);
 		Category saved = categoryRepository.save(category);
 		return categoryMapper.toResponse(saved);
@@ -78,15 +82,27 @@ public class CategoryServiceImpl implements CategoryService {
 	@Override
 	@Transactional
 	public void delete(Integer id, String clientIp, String clientName) {
-		Category category = findActiveEntity(id);
+		Category category = findNotDeletedEntity(id);
 		category.setDeletedYn(DELETED);
 		HttpRequestUtils.applyUpdateAudit(category, clientIp, clientName);
 		categoryRepository.save(category);
 	}
 
-	private Category findActiveEntity(Integer id) {
-		return categoryRepository.findByIdAndDeletedYn(id, ACTIVE)
+	private Category findNotDeletedEntity(Integer id) {
+		return categoryRepository.findByIdAndDeletedYn(id, NOT_DELETED)
 				.orElseThrow(() -> CategoryException.notFound("Category with id " + id + " was not found"));
+	}
+
+	/** Active = N (default), Inactive = Y */
+	private String normalizeStatus(String status) {
+		if (!StringUtils.hasText(status)) {
+			return STATUS_ACTIVE;
+		}
+		String value = status.trim().toUpperCase();
+		if (STATUS_ACTIVE.equals(value) || STATUS_INACTIVE.equals(value)) {
+			return value;
+		}
+		throw CategoryException.badRequest("Status must be N (Active) or Y (Inactive)");
 	}
 
 	private Sort buildSort(String orderBy) {
