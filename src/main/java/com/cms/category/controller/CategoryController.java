@@ -38,12 +38,14 @@ public class CategoryController {
 	public ResponseBody<PageResponse<CategoryResponse>> list(
 			@RequestParam(name = "pageIndex", defaultValue = "1") int pageIndex,
 			@RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
-			@RequestParam(name = "orderBy", defaultValue = "createdAt,DESC") String orderBy) {
+			@RequestParam(name = "orderBy", defaultValue = "createdAt,DESC") String orderBy,
+			@RequestParam(name = "name", required = false) String name) {
 
 		PageResponse<CategoryResponse> categories = categoryService.findAll(
 				pageIndex,
 				pageSize,
-				orderBy);
+				orderBy,
+				name);
 		return ResponseBody.ok("Retrieved successfully.", categories);
 	}
 

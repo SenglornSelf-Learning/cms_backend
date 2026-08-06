@@ -3,6 +3,7 @@ package com.cms.category.service.impl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -17,6 +18,7 @@ import com.cms.common.response.PageResponse;
 import com.cms.common.web.HttpRequestUtils;
 import com.cms.globleException.exception.CategoryException;
 
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,13 +35,13 @@ public class CategoryServiceImpl implements CategoryService {
 	private final CategoryMapper categoryMapper;
 
 	@Override
-	public PageResponse<CategoryResponse> findAll(Integer pageIndex, Integer pageSize, String orderBy) {
+	public PageResponse<CategoryResponse> findAll(Integer pageIndex, Integer pageSize, String orderBy, String name) {
 		int setPageIndex = pageIndex == null || pageIndex < 1 ? 1 : pageIndex;
 		int setPageSize = pageSize == null || pageSize < 1 ? 10 : pageSize;
 		Sort sort = buildSort(orderBy);
 
 		PageRequest pageable = PageRequest.of(setPageIndex - 1, setPageSize, sort);
-		Page<Category> page = categoryRepository.findByDeletedYn(NOT_DELETED, pageable);
+		Page<Category> page = categoryRepository.findAll(buildCategoryFilter(name), pageable);
 
 		return new PageResponse<>(
 				categoryMapper.toResponseList(page.getContent()),
@@ -91,6 +93,19 @@ public class CategoryServiceImpl implements CategoryService {
 	private Category findNotDeletedEntity(Integer id) {
 		return categoryRepository.findByIdAndDeletedYn(id, NOT_DELETED)
 				.orElseThrow(() -> CategoryException.notFound("Category with id " + id + " was not found"));
+	}
+
+	// filter category
+	private Specification<Category> buildCategoryFilter(String name) {
+		return (root, query, cb) -> {
+			Predicate notDeleted = cb.equal(root.get("deletedYn"), NOT_DELETED);
+			if (!StringUtils.hasText(name)) {
+				return notDeleted;
+			}
+			String pattern = "%" + name.trim().toLowerCase() + "%";
+			Predicate nameMatch = cb.like(cb.lower(root.get("name")), pattern);
+			return cb.and(notDeleted, nameMatch);
+		};
 	}
 
 	/** Active = N (default), Inactive = Y */

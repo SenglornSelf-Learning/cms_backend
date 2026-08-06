@@ -6,7 +6,7 @@ import com.cms.common.response.PageResponse;
 
 public interface CategoryService {
 
-	PageResponse<CategoryResponse> findAll(Integer pageIndex, Integer pageSize, String orderBy);
+	PageResponse<CategoryResponse> findAll(Integer pageIndex, Integer pageSize, String orderBy, String name);
 
 	CategoryResponse getById(Integer id);
 
