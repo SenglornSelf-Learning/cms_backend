@@ -1,5 +1,8 @@
 package com.cms.category.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -41,19 +44,21 @@ public class CategoryServiceImpl implements CategoryService {
 		Sort sort = buildSort(orderBy);
 
 		PageRequest pageable = PageRequest.of(setPageIndex - 1, setPageSize, sort);
-		Page<Category> page = categoryRepository.findAll(buildCategoryFilter(name), pageable);
+		Page<Category> categories = categoryRepository.findAll(buildCategoryFilter(name), pageable);
 
 		return new PageResponse<>(
-				categoryMapper.toResponseList(page.getContent()),
-				page.getTotalElements(),
+				categoryMapper.toResponseList(
+				categories.getContent()),
+				categories.getTotalElements(),
 				setPageIndex,
 				setPageSize,
-				page.getTotalPages());
+				categories.getTotalPages()
+			);
 	}
 
 	@Override
 	public CategoryResponse getById(Integer id) {
-		return categoryMapper.toResponse(findNotDeletedEntity(id));
+		return categoryMapper.toResponse(findCategoryById(id));
 	}
 
 	@Override
@@ -73,7 +78,7 @@ public class CategoryServiceImpl implements CategoryService {
 	@Override
 	@Transactional
 	public CategoryResponse update(Integer id, CategoryRequest request, String clientIp, String clientName) {
-		Category category = findNotDeletedEntity(id);
+		Category category = findCategoryById(id);
 		categoryMapper.updateEntity(request, category);
 		category.setStatus(normalizeStatus(request.getStatus()));
 		HttpRequestUtils.applyUpdateAudit(category, clientIp, clientName);
@@ -84,28 +89,28 @@ public class CategoryServiceImpl implements CategoryService {
 	@Override
 	@Transactional
 	public void delete(Integer id, String clientIp, String clientName) {
-		Category category = findNotDeletedEntity(id);
+		Category category = findCategoryById(id);
 		category.setDeletedYn(DELETED);
 		HttpRequestUtils.applyUpdateAudit(category, clientIp, clientName);
 		categoryRepository.save(category);
 	}
 
-	private Category findNotDeletedEntity(Integer id) {
+	// find category by id
+	private Category findCategoryById(Integer id) {
 		return categoryRepository.findByIdAndDeletedYn(id, NOT_DELETED)
 				.orElseThrow(() -> CategoryException.notFound("Category with id " + id + " was not found"));
 	}
 
 	// filter category
 	private Specification<Category> buildCategoryFilter(String name) {
-		return (root, query, cb) -> {
-			Predicate notDeleted = cb.equal(root.get("deletedYn"), NOT_DELETED);
-			if (!StringUtils.hasText(name)) {
-				return notDeleted;
+		return (root, query, criteriaBuilder) -> {
+			List<Predicate> predicates = new ArrayList<>();
+			predicates.add(criteriaBuilder.equal(root.get("deletedYn"), NOT_DELETED));
+			if (StringUtils.hasText(name)) {
+				predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.trim().toLowerCase() + "%"));
 			}
-			String pattern = "%" + name.trim().toLowerCase() + "%";
-			Predicate nameMatch = cb.like(cb.lower(root.get("name")), pattern);
-			return cb.and(notDeleted, nameMatch);
-		};
+			return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+		}; 
 	}
 
 	/** Active = N (default), Inactive = Y */

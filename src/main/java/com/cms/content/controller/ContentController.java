@@ -2,6 +2,7 @@ package com.cms.content.controller;
 
 import java.util.List;
 
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,9 +11,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cms.common.response.PageResponse;
 import com.cms.common.response.ResponseBody;
 import com.cms.common.web.HttpRequestUtils;
 import com.cms.content.dto.ContentDto.ContentRequest;
@@ -35,8 +38,15 @@ public class ContentController {
 
 	@GetMapping("/list")
 	@Operation(summary = "List contents")
-	public ResponseBody<List<ContentResponse>> list() {
-		return ResponseBody.ok("Success", contentService.findAll());
+	public ResponseBody<PageResponse<ContentResponse>> list(
+		@RequestParam(name = "pageIndex", defaultValue = "1") int pageIndex,
+		@RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
+		@RequestParam(name = "orderBy", defaultValue = "createdAt,DESC") String orderBy,
+		@RequestParam(name = "title", required = false) String title,
+		@RequestParam(name = "editor", required = false) String editor
+	) {
+		PageResponse<ContentResponse> contents = contentService.findAll(pageIndex, pageSize, orderBy, title, editor);
+		return ResponseBody.ok("Successfully retrieved contents.", contents);
 	}
 
 	@GetMapping("/getById/{id}")

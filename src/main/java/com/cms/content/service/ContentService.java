@@ -1,13 +1,12 @@
 package com.cms.content.service;
 
-import java.util.List;
-
+import com.cms.common.response.PageResponse;
 import com.cms.content.dto.ContentDto.ContentRequest;
 import com.cms.content.dto.ContentDto.ContentResponse;
 
 public interface ContentService {
 
-	List<ContentResponse> findAll();
+	PageResponse<ContentResponse> findAll(Integer pageIndex, Integer pageSize, String orderBy, String title, String editor);
 
 	ContentResponse getById(Integer id);
 

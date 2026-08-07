@@ -16,7 +16,6 @@ public class ContentDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class ContentResponse {
-
 		private Integer id;
 		private String uuid;
 		private String slug;
@@ -25,7 +24,6 @@ public class ContentDto {
 		private String description;
 		private String thumbnail;
 		private String editor;
-		private String deletedYn;
 		private LocalDateTime createdAt;
 		private Integer categoryId;
 	}
@@ -35,7 +33,6 @@ public class ContentDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class ContentRequest {
-
 		private String uuid;
 		private String slug;
 		private String keyword;
@@ -47,7 +44,7 @@ public class ContentDto {
 		private String thumbnail;
 		private String editor;
 
-		@NotNull(message = "Category is required")
+		@NotNull(message = "Category id is required")
 		private Integer categoryId;
 	}
 }

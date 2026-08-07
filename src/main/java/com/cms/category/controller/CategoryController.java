@@ -46,7 +46,7 @@ public class CategoryController {
 				pageSize,
 				orderBy,
 				name);
-		return ResponseBody.ok("Retrieved successfully.", categories);
+		return ResponseBody.ok("Successfully retrieved categories.", categories);
 	}
 
 	@GetMapping("/getById/{id}")

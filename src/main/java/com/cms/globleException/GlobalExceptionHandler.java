@@ -14,6 +14,7 @@ import com.cms.globleException.exception.ContentException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -88,6 +89,13 @@ public class GlobalExceptionHandler {
 		}
 		return ResponseEntity.badRequest()
 				.body(ResponseBody.error(HttpStatus.BAD_REQUEST, "Validation failed."));
+	}
+
+	// JSON format error as a 400(type mismatch during execution).
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ResponseBody<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+		return ResponseEntity.badRequest()
+				.body(ResponseBody.error(HttpStatus.BAD_REQUEST, "Invalid JSON format."));
 	}
 
 	private static String toReadableMessage(String message) {
