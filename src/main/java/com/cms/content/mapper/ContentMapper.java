@@ -15,6 +15,7 @@ import com.cms.content.model.Content;
 public interface ContentMapper {
 
 	@Mapping(target = "categoryId", source = "category.id")
+	@Mapping(target = "thumbnails", ignore = true)
 	ContentResponse toResponse(Content content);
 
 	List<ContentResponse> toResponseList(List<Content> contents);

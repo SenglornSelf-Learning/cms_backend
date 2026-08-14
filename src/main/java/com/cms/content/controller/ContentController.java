@@ -1,11 +1,18 @@
 package com.cms.content.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.data.repository.query.Param;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,12 +21,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cms.common.response.PageResponse;
 import com.cms.common.response.ResponseBody;
 import com.cms.common.web.HttpRequestUtils;
 import com.cms.content.dto.ContentDto.ContentRequest;
 import com.cms.content.dto.ContentDto.ContentResponse;
+import com.cms.content.dto.ContentDto.ThumbnailDownload;
 import com.cms.content.service.ContentService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,7 +64,7 @@ public class ContentController {
 		return ResponseBody.ok("Success", contentService.getById(id));
 	}
 
-	@PostMapping
+	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Create content")
 	public ResponseBody<ContentResponse> create(
@@ -63,11 +72,26 @@ public class ContentController {
 			HttpServletRequest servletRequest) {
 		return ResponseBody.ok("Created Success", contentService.create(
 				request,
+				List.of(),
 				HttpRequestUtils.clientIp(servletRequest),
 				HttpRequestUtils.clientName(servletRequest)));
 	}
 
-	@PutMapping("/update/{id}")
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@ResponseStatus(HttpStatus.CREATED)
+	@Operation(summary = "Create content with thumbnails")
+	public ResponseBody<ContentResponse> createWithFiles(
+			@Valid @ModelAttribute ContentRequest request,
+			@RequestParam(name = "thumbnails", required = false) MultipartFile[] thumbnails,
+			HttpServletRequest servletRequest) {
+		return ResponseBody.ok("Created Success", contentService.create(
+				request,
+				asFileList(thumbnails),
+				HttpRequestUtils.clientIp(servletRequest),
+				HttpRequestUtils.clientName(servletRequest)));
+	}
+
+	@PutMapping(value = "/update/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Update content")
 	public ResponseBody<ContentResponse> update(
 			@PathVariable("id") Integer id,
@@ -76,6 +100,25 @@ public class ContentController {
 		return ResponseBody.ok("Updated Success", contentService.update(
 				id,
 				request,
+				List.of(),
+				List.of(),
+				HttpRequestUtils.clientIp(servletRequest),
+				HttpRequestUtils.clientName(servletRequest)));
+	}
+
+	@PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@Operation(summary = "Update content with thumbnails")
+	public ResponseBody<ContentResponse> updateWithFiles(
+			@PathVariable("id") Integer id,
+			@Valid @ModelAttribute ContentRequest request,
+			@RequestParam(name = "thumbnails", required = false) MultipartFile[] thumbnails,
+			@RequestParam(name = "deletedThumbnailIds", required = false) List<Integer> deletedThumbnailIds,
+			HttpServletRequest servletRequest) {
+		return ResponseBody.ok("Updated Success", contentService.update(
+				id,
+				request,
+				asFileList(thumbnails),
+				deletedThumbnailIds == null ? List.of() : deletedThumbnailIds,
 				HttpRequestUtils.clientIp(servletRequest),
 				HttpRequestUtils.clientName(servletRequest)));
 	}
@@ -88,5 +131,31 @@ public class ContentController {
 				HttpRequestUtils.clientIp(servletRequest),
 				HttpRequestUtils.clientName(servletRequest));
 		return ResponseBody.ok("Deleted Success", null);
+	}
+
+	@GetMapping("/{id}/thumbnails/{fileId}")
+	@Operation(summary = "Download content thumbnail")
+	public ResponseEntity<Resource> downloadThumbnail(
+			@PathVariable("id") Integer id,
+			@PathVariable("fileId") Integer fileId) {
+		ThumbnailDownload download = contentService.getThumbnailDownload(id, fileId);
+		MediaType contentType = download.getContentType() == null || download.getContentType().isBlank()
+				? MediaType.APPLICATION_OCTET_STREAM
+				: MediaType.parseMediaType(download.getContentType());
+		return ResponseEntity.ok()
+				.contentType(contentType)
+				.contentLength(download.getFileSize())
+				.header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
+						.filename(download.getOriginalFileName(), StandardCharsets.UTF_8)
+						.build()
+						.toString())
+				.body(download.getResource());
+	}
+
+	private static List<MultipartFile> asFileList(MultipartFile[] files) {
+		if (files == null || files.length == 0) {
+			return List.of();
+		}
+		return Arrays.asList(files);
 	}
 }

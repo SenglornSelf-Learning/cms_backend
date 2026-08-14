@@ -12,9 +12,21 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 25MB
 
 server:
   port: 8080
+
+cms:
+  file-store-path: ${FILE_STORE_PATH:./upload}
+  file-upload:
+    max-file-size: 5MB
+    allowed-extensions: jpg,jpeg,png,gif,webp
+    allowed-content-types: image/jpeg,image/png,image/gif,image/webp
 
 # OpenAPI/Swagger UI: http://localhost:8080/swagger-ui.html
 springdoc:

@@ -7,6 +7,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 import com.cms.common.response.ResponseBody;
 import com.cms.globleException.exception.CategoryException;
@@ -69,6 +71,30 @@ public class GlobalExceptionHandler {
 						"A required field was missing during processing."));
 	}
 
+	// JSON format error as a 400(type mismatch during execution).
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ResponseBody<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+		return ResponseEntity.badRequest()
+				.body(ResponseBody.error(HttpStatus.BAD_REQUEST, "Invalid JSON format."));
+	}
+
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<ResponseBody<Void>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+		log.warn("Upload size exceeded", ex);
+		return ResponseEntity.badRequest()
+				.body(ResponseBody.error(HttpStatus.BAD_REQUEST, "The selected file exceeds the maximum file size of 5 MB."));
+	}
+
+	@ExceptionHandler(MultipartException.class)
+	public ResponseEntity<ResponseBody<Void>> handleMultipart(MultipartException ex) {
+		log.warn("Multipart upload failed", ex);
+		if (ex.getCause() instanceof MaxUploadSizeExceededException) {
+			return handleMaxUploadSize((MaxUploadSizeExceededException) ex.getCause());
+		}
+		return ResponseEntity.badRequest()
+				.body(ResponseBody.error(HttpStatus.BAD_REQUEST, "Invalid file upload."));
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ResponseBody<Void>> handleGeneric(Exception ex) {
 		log.error("Unhandled exception", ex);
@@ -89,13 +115,6 @@ public class GlobalExceptionHandler {
 		}
 		return ResponseEntity.badRequest()
 				.body(ResponseBody.error(HttpStatus.BAD_REQUEST, "Validation failed."));
-	}
-
-	// JSON format error as a 400(type mismatch during execution).
-	@ExceptionHandler(HttpMessageNotReadableException.class)
-	public ResponseEntity<ResponseBody<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-		return ResponseEntity.badRequest()
-				.body(ResponseBody.error(HttpStatus.BAD_REQUEST, "Invalid JSON format."));
 	}
 
 	private static String toReadableMessage(String message) {

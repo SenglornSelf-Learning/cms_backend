@@ -40,9 +40,6 @@ public class Content extends BaseEntity {
 	private String description;
 
 	@Column(columnDefinition = "text", length = 255)
-	private String thumbnail;
-
-	@Column(columnDefinition = "text", length = 255)
 	private String editor;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
