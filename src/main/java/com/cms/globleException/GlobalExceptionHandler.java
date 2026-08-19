@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartException;
 import com.cms.common.response.ResponseBody;
 import com.cms.globleException.exception.CategoryException;
 import com.cms.globleException.exception.ContentException;
+import com.cms.globleException.exception.UserException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ContentException.class)
 	public ResponseEntity<ResponseBody<Void>> handleContent(ContentException ex) {
+		return ResponseEntity.status(ex.getStatus())
+				.body(ResponseBody.error(ex.getStatus(), ex.getMessage()));
+	}
+
+	@ExceptionHandler(UserException.class)
+	public ResponseEntity<ResponseBody<Void>> handleUserException(UserException ex) {
 		return ResponseEntity.status(ex.getStatus())
 				.body(ResponseBody.error(ex.getStatus(), ex.getMessage()));
 	}
