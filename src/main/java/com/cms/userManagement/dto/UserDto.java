@@ -9,6 +9,7 @@ import com.cms.userManagement.dto.RoleDto.RoleResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +38,7 @@ public class UserDto {
 
 		@NotBlank(message = "Phone is required")
 		@Size(max = 15, message = "Phone must be at most 15 characters")
+		@Pattern(regexp = "^\\d+$", message = "Phone must be a number")
 		private String phone;
 
 		@Valid

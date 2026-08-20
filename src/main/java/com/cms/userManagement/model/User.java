@@ -2,19 +2,19 @@ package com.cms.userManagement.model;
 
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.cms.common.model.BaseEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -44,11 +44,32 @@ public class User extends BaseEntity {
     @Column(nullable = false, columnDefinition = "text", length = 15)
     private String phone;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "tb_user_roles",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
-        )
-    private Set<Role> roles = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<UserRole> userRoles = new HashSet<>();
+
+    public Set<Role> getRoles() {
+        Set<Role> roles = new LinkedHashSet<>();
+        for (UserRole userRole : userRoles) {
+            if (userRole.getRole() != null) {
+                roles.add(userRole.getRole());
+            }
+        }
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        if (userRoles == null) {
+            userRoles = new HashSet<>();
+        }
+        userRoles.clear();
+        if (roles == null) {
+            return;
+        }
+        for (Role role : roles) {
+            UserRole userRole = new UserRole();
+            userRole.setUser(this);
+            userRole.setRole(role);
+            userRoles.add(userRole);
+        }
+    }
 }

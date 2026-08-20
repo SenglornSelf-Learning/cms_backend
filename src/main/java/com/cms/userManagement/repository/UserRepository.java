@@ -1,5 +1,7 @@
 package com.cms.userManagement.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -10,4 +12,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	boolean existsByUsernameAndDeletedYn(String username, String deletedYn);
 
 	boolean existsByEmailAndDeletedYn(String email, String deletedYn);
+
+	Optional<User> findByIdAndDeletedYn(Integer id, String deletedYn);
 }

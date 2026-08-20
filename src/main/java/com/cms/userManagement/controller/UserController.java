@@ -2,7 +2,9 @@ package com.cms.userManagement.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,9 +59,21 @@ public class UserController {
 	public ResponseBody<UserResponse> create(
 			@Valid @RequestBody UserRequest request,
 			HttpServletRequest servletRequest) {
-		return ResponseBody.ok("Created Success", userService.create(
+
+		UserResponse user = userService.create(
 				request,
 				HttpRequestUtils.clientIp(servletRequest),
-				HttpRequestUtils.clientName(servletRequest)));
+				HttpRequestUtils.clientName(servletRequest));
+				
+		return ResponseBody.ok("Created Success", user);
+	}
+
+	@PutMapping("/update/{id}")
+	@Operation(summary = "Update user")
+	public ResponseBody<UserResponse> update(
+			@PathVariable("id") Integer id,
+			@Valid @RequestBody UserRequest request,
+			HttpServletRequest servletRequest) {
+		return ResponseBody.ok("Updated Success", userService.update(id, request, HttpRequestUtils.clientIp(servletRequest), HttpRequestUtils.clientName(servletRequest)));
 	}
 }

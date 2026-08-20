@@ -16,4 +16,6 @@ public interface UserService {
 			String role);
 
 	UserResponse create(UserRequest request, String clientIp, String clientName);
+
+	UserResponse update(Integer id, UserRequest request, String clientIp, String clientName);
 }
