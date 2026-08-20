@@ -5,15 +5,20 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.cms.userManagement.model.Role;
-import com.cms.userManagement.model.RoleName;
 
 public interface RoleRepository extends JpaRepository<Role, Integer> {
 
-	boolean existsByName(RoleName name);
+	List<Role> findByDeletedYn(String deletedYn);
 
-	Optional<Role> findByNameAndDeletedYn(RoleName name, String deletedYn);
+	boolean existsByRoleTypeName(String roleTypeName);
 
-	List<Role> findByNameInAndDeletedYn(Collection<RoleName> names, String deletedYn);
+	boolean existsByRoleTypeNameAndIdNot(String roleTypeName, Integer id);
+
+	Optional<Role> findByIdAndDeletedYn(Integer id, String deletedYn);
+
+	Optional<Role> findByRoleTypeNameAndDeletedYn(String roleTypeName, String deletedYn);
+
+	List<Role> findByRoleTypeNameInAndDeletedYn(Collection<String> roleTypeNames, String deletedYn);
+
 }

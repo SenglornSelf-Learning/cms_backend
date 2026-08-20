@@ -7,13 +7,11 @@ import com.cms.common.model.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,10 +29,9 @@ public class Role extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, unique = true, columnDefinition = "text", length = 50)
-    private RoleName name;
+    @Column(name = "role_type", nullable = false, unique = true, columnDefinition = "text", length = 30)
+    private String roleTypeName;
 
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private Set<User> users = new HashSet<>();
+    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    private Set<UserRole> userRoles = new HashSet<>();
 }

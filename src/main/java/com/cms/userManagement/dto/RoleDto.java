@@ -1,8 +1,5 @@
 package com.cms.userManagement.dto;
 
-import com.cms.userManagement.model.RoleName;
-
-import jakarta.validation.constraints.NotBlank;
 import lombok.Setter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,8 +11,7 @@ public class RoleDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class RoleRequest {
-		@NotBlank(message = "Role name is required")
-		private String name;
+		private String roleType;
 	}
 
 	@Getter
@@ -24,6 +20,6 @@ public class RoleDto {
 	@AllArgsConstructor
 	public static class RoleResponse {
 		private Integer id;
-		private RoleName name;
+		private String roleType;
 	}
 }

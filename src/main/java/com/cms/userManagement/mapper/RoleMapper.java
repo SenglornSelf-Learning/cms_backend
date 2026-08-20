@@ -9,21 +9,17 @@ import org.mapstruct.ReportingPolicy;
 import com.cms.userManagement.dto.RoleDto.RoleRequest;
 import com.cms.userManagement.dto.RoleDto.RoleResponse;
 import com.cms.userManagement.model.Role;
-import com.cms.userManagement.model.RoleName;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RoleMapper {
 
+	@Mapping(target = "roleType", source = "roleTypeName")
 	RoleResponse toResponse(Role role);
 
 	List<RoleResponse> toResponseList(List<Role> roles);
 
 	@Mapping(target = "id", ignore = true)
-	@Mapping(target = "users", ignore = true)
-	@Mapping(target = "name", source = "name")
+	@Mapping(target = "userRoles", ignore = true)
+	@Mapping(target = "roleTypeName", source = "roleType")
 	Role toEntity(RoleRequest request);
-
-	default RoleName toRoleName(String name) {
-		return RoleName.from(name);
-	}
 }
