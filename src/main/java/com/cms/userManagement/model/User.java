@@ -41,7 +41,7 @@ public class User extends BaseEntity {
     @Column(nullable = false, columnDefinition = "text", length = 100)
     private String email;
 
-    @Column(nullable = false, columnDefinition = "text", length = 15)
+    @Column(nullable = true, columnDefinition = "text", length = 15)
     private String phone;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

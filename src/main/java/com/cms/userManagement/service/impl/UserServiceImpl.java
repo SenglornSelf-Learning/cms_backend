@@ -42,6 +42,8 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService {
 
 	private static final String NOT_DELETED = "N";
+	private static final String DELETED = "Y";
+	private static final String DEFAULT_ROLE = "SUBSCRIBER";
 
 	private final UserRepository userRepository;
 	private final RoleRepository roleRepository;
@@ -80,10 +82,10 @@ public class UserServiceImpl implements UserService {
 		String phone = requirePhone(request.getPhone());
 
 		if (userRepository.existsByUsernameAndDeletedYn(username, NOT_DELETED)) {
-			throw UserException.badRequest("Username already exists");
+			throw UserException.badRequest("Username " + username + " already exists");
 		}
 		if (userRepository.existsByEmailAndDeletedYn(email, NOT_DELETED)) {
-			throw UserException.badRequest("Email already exists");
+			throw UserException.badRequest("Email " + email + " already exists");
 		}
 
 		User user = userMapper.toEntity(request);
@@ -93,14 +95,52 @@ public class UserServiceImpl implements UserService {
 		user.setPhone(phone);
 		user.setDeletedYn(NOT_DELETED);
 		HttpRequestUtils.applyCreateAudit(user, clientIp, clientName);
-		user.setRoles(toRoles(request.getRoles()));
+		user.setRoles(checkingRoleSet(request.getRoles(), true));
 
 		User saved = userRepository.save(user);
 		return userMapper.toResponse(saved);
 	}
 
-	// resolve catalog roles from the request; empty when none are sent
-	private Set<Role> toRoles(List<RoleRequest> roleRequests) {
+	// Update user by id
+	@Override
+	@Transactional
+	public UserResponse update(Integer id, UserRequest request, String clientIp, String clientName) {
+		User user = checkingUserByID(id);
+
+		String username = request.getUsername() != null ? requireText(request.getUsername(), "Username is required") : user.getUsername();
+		String email = request.getEmail() != null ? requireText(request.getEmail(), "Email is required") : user.getEmail();
+		String phone = request.getPhone() != null ? requirePhone(request.getPhone()) : null;
+
+		if (username != user.getUsername() && userRepository.existsByUsernameAndDeletedYn(username, NOT_DELETED)) {
+			throw UserException.badRequest("Username " + username + " already exists");
+		}
+		if (email != user.getEmail() && userRepository.existsByEmailAndDeletedYn(email, NOT_DELETED)) {
+			throw UserException.badRequest("Email " + email + " already exists");
+		}
+
+		user.setUsername(username != null ? username : user.getUsername());
+		user.setEmail(email != null ? email : user.getEmail());
+		user.setPassword(request.getPassword() != null ? request.getPassword().trim() : user.getPassword());
+		user.setPhone(phone != null ? phone : user.getPhone());
+		HttpRequestUtils.applyUpdateAudit(user, clientIp, clientName);
+		user.setRoles(request.getRoles() != null ? checkingRoleSet(request.getRoles()) : user.getRoles());
+
+		User updated = userRepository.save(user);
+		return userMapper.toResponse(updated);
+	}
+
+	// Delete user by id
+	@Override
+	@Transactional
+	public void delete(Integer id, String clientIp, String clientName) {
+		User user = checkingUserByID(id);
+		user.setDeletedYn(DELETED);
+		HttpRequestUtils.applyUpdateAudit(user, clientIp, clientName);
+		userRepository.save(user);
+	}	
+
+	// checking role set from the request; create defaults to SUBSCRIBER when none are sent
+	private Set<Role> checkingRoleSet(List<RoleRequest> roleRequests) {
 		Set<String> uniqueRoles = new LinkedHashSet<>();
 		if (roleRequests != null) {
 			for (RoleRequest roleRequest : roleRequests) {
@@ -108,6 +148,7 @@ public class UserServiceImpl implements UserService {
 				if (!StringUtils.hasText(roleType)) {
 					continue;
 				}
+				
 				String roleName = roleType.trim().toUpperCase(Locale.ROOT);
 				if (!uniqueRoles.add(roleName)) {
 					throw UserException.badRequest("Duplicate role: " + roleName);
@@ -115,6 +156,12 @@ public class UserServiceImpl implements UserService {
 			}
 		}
 
+		// add default role if no roles are provided
+		if (uniqueRoles.isEmpty()) {
+			uniqueRoles.add(DEFAULT_ROLE);
+		}
+
+		// check if roles exist
 		Set<Role> roles = new LinkedHashSet<>();
 		for (String roleName : uniqueRoles) {
 			Role role = roleRepository.findByRoleTypeNameAndDeletedYn(roleName, NOT_DELETED)
@@ -170,31 +217,12 @@ public class UserServiceImpl implements UserService {
 		};
 	}
 
-	// Update user by id
-	@Override
-	@Transactional
-	public UserResponse update(Integer id, UserRequest request, String clientIp, String clientName) {
+	// check if user exists
+	private User checkingUserByID(Integer id) {
 		User user = userRepository.findByIdAndDeletedYn(id, NOT_DELETED)
-				.orElseThrow(() -> UserException.notFound("User " + id + " was not found"));
+		.orElseThrow(() -> UserException.notFound("User " + id + " was not found"));
 
-		String username = requireText(request.getUsername(), "Username is required");
-		String email = requireText(request.getEmail(), "Email is required");
-		String phone = requirePhone(request.getPhone());
-
-		if (userRepository.existsByUsernameAndIdNot(username, id)) {
-			throw UserException.badRequest("Username " + username + " already exists");
-		}
-		if (userRepository.existsByEmailAndIdNot(email, id)) {
-			throw UserException.badRequest("Email " + email + " already exists");
-		}
-
-		user.setUsername(username);
-		user.setEmail(request.getEmail());
-		user.setPhone(request.getPhone());
-		HttpRequestUtils.applyUpdateAudit(user, clientIp, clientName);
-		user.setRoles(toRoles(request.getRoles()));
-		User updated = userRepository.save(user);
-		return userMapper.toResponse(updated);
+		return user;
 	}
 
 	// build sort by orderBy

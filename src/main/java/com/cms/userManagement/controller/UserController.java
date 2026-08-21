@@ -1,6 +1,7 @@
 package com.cms.userManagement.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -75,5 +76,14 @@ public class UserController {
 			@Valid @RequestBody UserRequest request,
 			HttpServletRequest servletRequest) {
 		return ResponseBody.ok("Updated Success", userService.update(id, request, HttpRequestUtils.clientIp(servletRequest), HttpRequestUtils.clientName(servletRequest)));
+	}
+
+	@DeleteMapping("/delete/{id}")
+	@Operation(summary = "Delete user")
+	public ResponseBody<Void> delete(
+			@PathVariable("id") Integer id,
+			HttpServletRequest servletRequest) {
+		userService.delete(id, HttpRequestUtils.clientIp(servletRequest), HttpRequestUtils.clientName(servletRequest));
+		return ResponseBody.ok("Deleted Success", null);
 	}
 }

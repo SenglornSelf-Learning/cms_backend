@@ -23,20 +23,15 @@ public class UserDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class UserRequest {
-		@NotBlank(message = "Username is required")
 		@Size(max = 50, message = "Username must be at most 50 characters")
 		private String username;
 
-		@NotBlank(message = "Password is required")
 		@Size(max = 100, message = "Password must be at most 100 characters")
 		private String password;
 
-		@NotBlank(message = "Email is required")
-		@Email(message = "Email is invalid")
 		@Size(max = 100, message = "Email must be at most 100 characters")
 		private String email;
 
-		@NotBlank(message = "Phone is required")
 		@Size(max = 15, message = "Phone must be at most 15 characters")
 		@Pattern(regexp = "^\\d+$", message = "Phone must be a number")
 		private String phone;
